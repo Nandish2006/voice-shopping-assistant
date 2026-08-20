@@ -2,7 +2,7 @@
 
 A voice-based shopping list manager with smart suggestions, built as a single-page web app.
 
-**Live app:** _[paste your Vercel URL here]_
+**Live app:** https://voice-shopping-assistant-mu.vercel.app/ 
 
 ## Features
 
