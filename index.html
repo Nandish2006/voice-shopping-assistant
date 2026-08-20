@@ -52,14 +52,6 @@
     position: relative;
   }
 
-  .app::before {
-    /* faint vertical fold line, like a receipt crease */
-    content: '';
-    position: absolute;
-    top: 0; bottom: 0; left: 50%;
-    width: 1px;
-    background: rgba(34,31,25,0.04);
-  }
 
   /* Torn perforated edge at the bottom of the receipt */
   .torn-edge {
@@ -176,6 +168,7 @@
     font-size: 12px;
     outline: none;
     color: var(--ink);
+    caret-color: var(--ink);
   }
 
   .settings-panel input:focus {
@@ -333,6 +326,7 @@
     font-size: 13px;
     outline: none;
     color: var(--ink);
+    caret-color: var(--ink);
   }
 
   .manual-row input:focus {
