@@ -3,283 +3,149 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Shopping Assistant</title>
+<title>Shopping List</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root {
-    --pink: #4aa8ff;
-    --pink-light: #dceeff;
-    --pink-soft: #f0f8ff;
-    --white: #ffffff;
-    --text: #1f2d3d;
-    --text-muted: #8a9bab;
-    --shadow: 0 8px 24px rgba(74, 168, 255, 0.15);
+    --paper: #FBF6E8;
+    --paper-dim: #F2EAD3;
+    --body-bg: #E9E0C6;
+    --ink: #221F19;
+    --ink-soft: #7A7460;
+    --red: #B23A2E;
+    --red-soft: #F1DCD8;
+    --green: #4B7350;
+    --green-soft: #DEE8DA;
+    --rule: #C9BFA0;
+    --highlight: #F4D35E;
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    background: linear-gradient(180deg, var(--pink-soft) 0%, var(--white) 40%);
+  html, body {
     min-height: 100vh;
+  }
+
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: var(--body-bg);
+    background-image:
+      radial-gradient(circle at 15% 20%, rgba(255,255,255,0.4) 0, transparent 45%),
+      radial-gradient(circle at 85% 80%, rgba(0,0,0,0.03) 0, transparent 45%);
     display: flex;
     justify-content: center;
-    padding: 24px 16px;
+    padding: 40px 16px;
+  }
+
+  .receipt-wrap {
+    width: 100%;
+    max-width: 380px;
   }
 
   .app {
-    width: 100%;
-    max-width: 420px;
+    background: var(--paper);
+    padding: 28px 24px 0;
+    box-shadow: 0 18px 40px rgba(34, 31, 25, 0.16), 0 2px 0 rgba(255,255,255,0.6) inset;
+    transform: rotate(-0.4deg);
+    position: relative;
+  }
+
+  .app::before {
+    /* faint vertical fold line, like a receipt crease */
+    content: '';
+    position: absolute;
+    top: 0; bottom: 0; left: 50%;
+    width: 1px;
+    background: rgba(34,31,25,0.04);
+  }
+
+  /* Torn perforated edge at the bottom of the receipt */
+  .torn-edge {
+    height: 14px;
+    transform: rotate(-0.4deg);
+    margin-top: -1px;
+    background-image:
+      linear-gradient(135deg, var(--paper) 50%, transparent 50%),
+      linear-gradient(45deg, var(--paper) 50%, transparent 50%);
+    background-size: 16px 16px;
+    background-position: 0 0, 0 0;
+    background-repeat: repeat-x;
+    filter: drop-shadow(0 4px 6px rgba(34,31,25,0.14));
+  }
+
+  .eyebrow {
+    text-align: center;
+    font-family: 'Space Mono', monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.18em;
+    color: var(--ink-soft);
+    text-transform: uppercase;
+    margin-bottom: 8px;
   }
 
   h1 {
-    font-size: 22px;
-    color: var(--text);
+    font-family: 'Space Mono', monospace;
+    font-weight: 700;
+    font-size: 21px;
+    letter-spacing: 0.02em;
+    color: var(--ink);
     text-align: center;
-    margin-bottom: 4px;
+    text-transform: uppercase;
   }
 
-  .subtitle {
-    text-align: center;
-    color: var(--text-muted);
-    font-size: 13px;
-    margin-bottom: 28px;
-  }
-
-  /* Mic button */
-  .mic-wrap {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin-bottom: 24px;
-  }
-
-  .mic-btn {
-    width: 84px;
-    height: 84px;
-    border-radius: 50%;
-    border: none;
-    background: var(--pink);
-    color: white;
-    font-size: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    box-shadow: var(--shadow);
-    transition: transform 0.15s ease, box-shadow 0.15s ease;
-  }
-
-  .mic-btn:active {
-    transform: scale(0.94);
-  }
-
-  .mic-btn.listening {
-    animation: pulse 1.2s infinite;
-    background: #ff2d6a;
-  }
-
-  @keyframes pulse {
-    0% { box-shadow: 0 0 0 0 rgba(255, 45, 106, 0.45); }
-    70% { box-shadow: 0 0 0 18px rgba(255, 45, 106, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(255, 45, 106, 0); }
-  }
-
-  .mic-status {
-    margin-top: 10px;
-    font-size: 13px;
-    color: var(--text-muted);
-    min-height: 18px;
-  }
-
-  .transcript-box {
-    background: var(--white);
-    border: 1.5px solid var(--pink-light);
-    border-radius: 16px;
-    padding: 14px 16px;
-    min-height: 48px;
-    font-size: 15px;
-    color: var(--text);
-    margin-bottom: 24px;
-    box-shadow: 0 4px 14px rgba(255, 92, 138, 0.08);
-    transition: border-color 0.2s ease;
-  }
-
-  .transcript-box.active {
-    border-color: var(--pink);
-  }
-
-  .transcript-box .placeholder {
-    color: var(--text-muted);
-    font-style: italic;
-  }
-
-  /* Manual add row (fallback / day-1 testing) */
-  .manual-row {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 20px;
-  }
-
-  .manual-row input {
-    flex: 1;
-    padding: 10px 14px;
-    border-radius: 12px;
-    border: 1.5px solid var(--pink-light);
-    font-size: 14px;
-    outline: none;
-  }
-
-  .manual-row input:focus {
-    border-color: var(--pink);
-  }
-
-  .manual-row button {
-    background: var(--pink);
-    color: white;
-    border: none;
-    border-radius: 12px;
-    padding: 0 18px;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-  }
-
-  /* List */
-  .list-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    margin-bottom: 10px;
-  }
-
-  .list-header h2 {
-    font-size: 15px;
-    color: var(--text);
-  }
-
-  .list-header span {
-    font-size: 12px;
-    color: var(--text-muted);
-  }
-
-  .list {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  .item {
-    background: var(--white);
-    border-radius: 14px;
-    padding: 12px 14px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    box-shadow: 0 2px 10px rgba(255, 92, 138, 0.08);
-    animation: slideIn 0.25s ease;
-  }
-
-  @keyframes slideIn {
-    from { opacity: 0; transform: translateY(-6px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  .item.removing {
-    animation: slideOut 0.2s ease forwards;
-  }
-
-  @keyframes slideOut {
-    to { opacity: 0; transform: translateX(20px); height: 0; padding: 0; margin: 0; }
-  }
-
-  .item-left {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-
-  .item-name {
-    font-size: 14px;
-    color: var(--text);
-    font-weight: 500;
-  }
-
-  .item-qty {
-    font-size: 12px;
-    color: var(--pink);
-    background: var(--pink-light);
-    padding: 2px 8px;
-    border-radius: 999px;
-  }
-
-  .item-remove {
-    background: none;
-    border: none;
-    color: var(--text-muted);
-    font-size: 18px;
-    cursor: pointer;
-    padding: 4px 8px;
-    line-height: 1;
-  }
-
-  .item-remove:hover {
-    color: var(--pink);
-  }
-
-  .empty-state {
-    text-align: center;
-    color: var(--text-muted);
-    font-size: 13px;
-    padding: 30px 0;
-  }
-
-  .error-banner {
-    background: #fff0e8;
-    color: #b5482c;
-    border-radius: 12px;
-    padding: 10px 14px;
-    font-size: 13px;
-    margin-bottom: 16px;
-    display: none;
-  }
-
-  .error-banner.show {
-    display: block;
-  }
-
-  /* Header row + settings */
   .header-row {
     display: flex;
     justify-content: center;
-    align-items: center;
+    align-items: flex-start;
     position: relative;
-    margin-bottom: 4px;
+    margin-bottom: 2px;
   }
 
   .settings-btn {
     position: absolute;
     right: 0;
-    top: 0;
-    background: var(--white);
-    border: 1.5px solid var(--pink-light);
-    border-radius: 10px;
-    width: 34px;
-    height: 34px;
-    font-size: 16px;
+    top: -4px;
+    background: transparent;
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    width: 30px;
+    height: 30px;
+    font-size: 14px;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
+    color: var(--ink-soft);
   }
 
+  .settings-btn:hover {
+    border-color: var(--ink-soft);
+  }
+
+  .subtitle {
+    text-align: center;
+    color: var(--ink-soft);
+    font-size: 12.5px;
+    margin: 6px 0 22px;
+    font-style: italic;
+  }
+
+  .rule {
+    border: none;
+    border-top: 1.5px dashed var(--rule);
+    margin: 18px 0;
+  }
+
+  /* Settings panel */
   .settings-panel {
     display: none;
-    background: var(--white);
-    border: 1.5px solid var(--pink-light);
-    border-radius: 14px;
+    background: var(--paper-dim);
+    border: 1px dashed var(--rule);
     padding: 14px;
-    margin-bottom: 20px;
-    font-size: 13px;
+    margin-bottom: 18px;
+    font-size: 12.5px;
   }
 
   .settings-panel.open {
@@ -288,8 +154,12 @@
 
   .settings-panel label {
     display: block;
-    color: var(--text-muted);
-    margin-bottom: 6px;
+    color: var(--ink-soft);
+    margin-bottom: 8px;
+    font-family: 'Space Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
   }
 
   .settings-panel .key-row {
@@ -300,97 +170,359 @@
   .settings-panel input {
     flex: 1;
     padding: 8px 10px;
-    border-radius: 10px;
-    border: 1.5px solid var(--pink-light);
-    font-size: 13px;
+    border: 1px solid var(--rule);
+    background: var(--paper);
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
     outline: none;
+    color: var(--ink);
+  }
+
+  .settings-panel input:focus {
+    border-color: var(--ink);
   }
 
   .settings-panel button {
-    background: var(--pink);
-    color: white;
+    background: var(--ink);
+    color: var(--paper);
     border: none;
-    border-radius: 10px;
-    padding: 0 14px;
-    font-size: 13px;
-    font-weight: 600;
+    padding: 0 16px;
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
     cursor: pointer;
   }
 
   .settings-hint {
-    margin-top: 8px;
-    color: var(--text-muted);
-    font-size: 11.5px;
-    line-height: 1.5;
+    margin-top: 10px;
+    color: var(--ink-soft);
+    font-size: 11px;
+    line-height: 1.6;
   }
 
   .settings-hint a {
-    color: var(--pink);
+    color: var(--red);
   }
 
   .key-status {
     margin-top: 6px;
-    font-size: 11.5px;
-    color: #2e9e5b;
-  }
-
-  /* Category badge */
-  .item-category {
     font-size: 11px;
-    color: var(--text-muted);
-    background: var(--pink-soft);
-    border: 1px solid var(--pink-light);
-    padding: 2px 8px;
-    border-radius: 999px;
-    text-transform: capitalize;
+    color: var(--green);
+    font-family: 'Space Mono', monospace;
   }
 
-  .item-main-row {
+  .error-banner {
+    background: var(--red-soft);
+    color: var(--red);
+    border-left: 3px solid var(--red);
+    padding: 10px 14px;
+    font-size: 12.5px;
+    margin-bottom: 16px;
+    display: none;
+  }
+
+  .error-banner.show {
+    display: block;
+  }
+
+  /* Mic button: styled like a receipt-printer control */
+  .mic-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 22px;
+    position: relative;
+  }
+
+  .mic-ring {
+    position: relative;
+    width: 88px;
+    height: 88px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .mic-btn {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    border: 3px solid var(--ink);
+    background: var(--red);
+    color: var(--paper);
+    font-size: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 0.15s ease;
+    position: relative;
+    z-index: 2;
+  }
+
+  .mic-btn:active {
+    transform: scale(0.94);
+  }
+
+  .sound-ring {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    border: 2px solid var(--red);
+    opacity: 0;
+  }
+
+  .mic-btn.listening ~ .sound-ring,
+  .mic-ring.listening .sound-ring {
+    animation: ring-out 1.4s ease-out infinite;
+  }
+
+  .sound-ring:nth-child(3) { animation-delay: 0.35s !important; }
+
+  @keyframes ring-out {
+    0% { transform: scale(0.8); opacity: 0.55; }
+    100% { transform: scale(1.7); opacity: 0; }
+  }
+
+  .mic-status {
+    margin-top: 12px;
+    font-family: 'Space Mono', monospace;
+    font-size: 11.5px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    min-height: 16px;
+  }
+
+  .transcript-box {
+    background: var(--paper-dim);
+    border: 1px solid var(--rule);
+    padding: 12px 14px;
+    min-height: 20px;
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+    color: var(--ink);
+    margin-bottom: 18px;
+    transition: border-color 0.2s ease;
+  }
+
+  .transcript-box.active {
+    border-color: var(--red);
+  }
+
+  .transcript-box .placeholder {
+    color: var(--ink-soft);
+    font-style: italic;
+  }
+
+  /* Manual add row */
+  .manual-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+
+  .manual-row input {
+    flex: 1;
+    padding: 10px 12px;
+    border: 1px solid var(--rule);
+    background: var(--paper);
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    outline: none;
+    color: var(--ink);
+  }
+
+  .manual-row input:focus {
+    border-color: var(--ink);
+  }
+
+  .manual-row button {
+    background: transparent;
+    color: var(--ink);
+    border: 1.5px solid var(--ink);
+    padding: 0 18px;
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    cursor: pointer;
+  }
+
+  .manual-row button:hover {
+    background: var(--ink);
+    color: var(--paper);
+  }
+
+  /* List header */
+  .list-header {
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: baseline;
+    margin-bottom: 12px;
+    font-family: 'Space Mono', monospace;
   }
 
-  .item-sub-row {
-    margin-top: 4px;
-  }
-
-  /* Substitute suggestion chip */
-  .substitute-chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    background: var(--pink-soft);
-    border: 1px dashed var(--pink-light);
-    color: var(--text-muted);
+  .list-header h2 {
     font-size: 12px;
-    padding: 4px 10px;
-    border-radius: 999px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink);
+  }
+
+  .list-header span {
+    font-size: 11px;
+    color: var(--ink-soft);
+  }
+
+  .list {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .item {
+    padding: 12px 0;
+    border-bottom: 1px dashed var(--rule);
+    animation: slideIn 0.25s ease;
+  }
+
+  .item:last-child {
+    border-bottom: none;
+  }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .item.removing {
+    animation: slideOut 0.2s ease forwards;
+  }
+
+  @keyframes slideOut {
+    to { opacity: 0; transform: translateX(14px); }
+  }
+
+  .item-row {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    font-family: 'Space Mono', monospace;
+  }
+
+  .item-name {
+    font-size: 14px;
+    color: var(--ink);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.01em;
+    white-space: nowrap;
+  }
+
+  .item-dots {
+    flex: 1;
+    border-bottom: 1.5px dotted var(--rule);
+    height: 0;
+    transform: translateY(-4px);
+  }
+
+  .item-qty {
+    font-size: 13px;
+    color: var(--ink);
+    white-space: nowrap;
+  }
+
+  .item-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
     margin-top: 6px;
   }
 
-  .substitute-chip button {
+  .item-category {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--green);
+    background: var(--green-soft);
+    padding: 2px 8px;
+    border-radius: 2px;
+  }
+
+  .item-remove {
     background: none;
     border: none;
-    color: var(--pink);
-    font-size: 12px;
-    font-weight: 600;
+    color: var(--red);
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    cursor: pointer;
+    padding: 2px 4px;
+  }
+
+  .item-remove:hover {
+    text-decoration: underline;
+  }
+
+  .empty-state {
+    text-align: center;
+    color: var(--ink-soft);
+    font-size: 12.5px;
+    font-style: italic;
+    padding: 24px 0 6px;
+  }
+
+  /* Substitute suggestion — styled like a torn coupon */
+  .item-sub-row {
+    margin-top: 8px;
+  }
+
+  .substitute-chip {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--paper-dim);
+    border: 1px dashed var(--rule);
+    color: var(--ink-soft);
+    font-size: 11.5px;
+    padding: 6px 10px;
+  }
+
+  .substitute-chip strong {
+    color: var(--ink);
+  }
+
+  .substitute-chip .use-sub {
+    background: none;
+    border: none;
+    color: var(--red);
+    font-family: 'Space Mono', monospace;
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
     cursor: pointer;
     padding: 0;
+    margin-left: auto;
   }
 
   .substitute-chip .dismiss {
-    color: var(--text-muted);
-    font-weight: 400;
-    margin-left: 2px;
+    color: var(--ink-soft);
+    cursor: pointer;
+    font-size: 13px;
   }
 
-  /* Loading spinner (small, inline) */
+  /* Loading spinner */
   .spinner {
-    width: 12px;
-    height: 12px;
-    border: 2px solid var(--pink-light);
-    border-top-color: var(--pink);
+    width: 10px;
+    height: 10px;
+    border: 2px solid var(--rule);
+    border-top-color: var(--red);
     border-radius: 50%;
     display: inline-block;
     animation: spin 0.7s linear infinite;
@@ -401,26 +533,32 @@
   @keyframes spin {
     to { transform: rotate(360deg); }
   }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; }
+  }
 </style>
 </head>
 <body>
 
+<div class="receipt-wrap">
 <div class="app">
+  <div class="eyebrow">✂ — — — — — — — — — — — — — — —</div>
   <div class="header-row">
-    <h1>🛒 Shopping Assistant</h1>
-    <button class="settings-btn" id="settingsBtn" aria-label="Settings">⚙️</button>
+    <h1>Shopping List</h1>
+    <button class="settings-btn" id="settingsBtn" aria-label="Settings">⚙</button>
   </div>
-  <p class="subtitle">Tap the mic and say something like "add 2 bottles of milk"</p>
+  <p class="subtitle">"add 2 bottles of milk" · "remove bananas"</p>
 
   <div class="settings-panel" id="settingsPanel">
-    <label for="apiKeyInput">Groq API key (free, used for smart parsing + suggestions)</label>
+    <label for="apiKeyInput">Groq API Key — smart parsing + suggestions</label>
     <div class="key-row">
       <input type="password" id="apiKeyInput" placeholder="gsk_...">
       <button id="saveKeyBtn">Save</button>
     </div>
     <div class="settings-hint">
-      Get a free key at <a href="https://console.groq.com/keys" target="_blank" rel="noopener">console.groq.com/keys</a>.
-      Stored only in your browser. Without a key, the app still works using basic offline parsing.
+      Free key at <a href="https://console.groq.com/keys" target="_blank" rel="noopener">console.groq.com/keys</a>.
+      Stored only in your browser. Without a key, basic offline parsing is used instead.
     </div>
     <div class="key-status" id="keyStatus"></div>
   </div>
@@ -428,19 +566,30 @@
   <div class="error-banner" id="errorBanner"></div>
 
   <div class="mic-wrap">
-    <button class="mic-btn" id="micBtn" aria-label="Start listening">🎤</button>
+    <div class="mic-ring" id="micRing">
+      <span class="sound-ring"></span>
+      <span class="sound-ring"></span>
+      <button class="mic-btn" id="micBtn" aria-label="Start listening">
+        <svg viewBox="0 0 24 24" width="26" height="26" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="9" y="2" width="6" height="12" rx="3" fill="currentColor"/>
+          <path d="M5 11a7 7 0 0 0 14 0" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          <path d="M12 18v4M9 22h6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </div>
     <div class="mic-status" id="micStatus">Tap to speak</div>
   </div>
 
   <div class="transcript-box" id="transcriptBox">
-    <span class="placeholder">Your voice command will appear here...</span>
+    <span class="placeholder">Your voice command will appear here…</span>
   </div>
 
-  <!-- Manual entry: useful for testing today, also acts as a fallback input -->
   <div class="manual-row">
     <input type="text" id="manualInput" placeholder="Or type an item...">
     <button id="manualAddBtn">Add</button>
   </div>
+
+  <hr class="rule">
 
   <div class="list-header">
     <h2>Your List</h2>
@@ -449,6 +598,8 @@
 
   <div class="list" id="list"></div>
   <div class="empty-state" id="emptyState">No items yet — add one above 👆</div>
+</div>
+<div class="torn-edge"></div>
 </div>
 
 <script>
@@ -465,6 +616,7 @@
   const errorBanner = document.getElementById('errorBanner');
   const manualInput = document.getElementById('manualInput');
   const manualAddBtn = document.getElementById('manualAddBtn');
+  const micRing = document.getElementById('micRing');
   const settingsBtn = document.getElementById('settingsBtn');
   const settingsPanel = document.getElementById('settingsPanel');
   const apiKeyInput = document.getElementById('apiKeyInput');
@@ -502,13 +654,14 @@
       const el = document.createElement('div');
       el.className = 'item';
       el.innerHTML = `
-        <div class="item-main-row">
-          <div class="item-left">
-            <span class="item-name">${escapeHtml(item.name)}</span>
-            ${item.qty > 1 ? `<span class="item-qty">x${item.qty}</span>` : ''}
-            ${item.category ? `<span class="item-category">${escapeHtml(item.category)}</span>` : ''}
-          </div>
-          <button class="item-remove" data-id="${item.id}">✕</button>
+        <div class="item-row">
+          <span class="item-name">${escapeHtml(item.name)}</span>
+          <span class="item-dots"></span>
+          <span class="item-qty">×${item.qty}</span>
+        </div>
+        <div class="item-meta">
+          ${item.category ? `<span class="item-category">${escapeHtml(item.category)}</span>` : '<span></span>'}
+          <button class="item-remove" data-id="${item.id}">Void</button>
         </div>
         ${item.substitute ? `
         <div class="item-sub-row">
@@ -752,6 +905,7 @@
     recognition.onstart = () => {
       listening = true;
       micBtn.classList.add('listening');
+      micRing.classList.add('listening');
       micStatus.textContent = 'Listening...';
       transcriptBox.classList.add('active');
       hideError();
@@ -787,6 +941,7 @@
     recognition.onend = () => {
       listening = false;
       micBtn.classList.remove('listening');
+      micRing.classList.remove('listening');
       micStatus.textContent = 'Tap to speak';
       transcriptBox.classList.remove('active');
     };
@@ -815,6 +970,5 @@
   // ---------- Init ----------
   render();
 </script>
-
 </body>
 </html>
