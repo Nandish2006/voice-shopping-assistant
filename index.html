@@ -128,6 +128,37 @@
     margin: 18px 0;
   }
 
+  .lang-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 18px;
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+  }
+
+  .lang-row label {
+    color: var(--ink-soft);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .lang-row select {
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    color: var(--ink);
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    padding: 4px 6px;
+    cursor: pointer;
+    outline: none;
+  }
+
+  .lang-row select:focus {
+    border-color: var(--ink);
+  }
+
   /* Settings panel */
   .settings-panel {
     display: none;
@@ -542,6 +573,26 @@
   </div>
   <p class="subtitle">"add 2 bottles of milk" · "remove bananas"</p>
 
+  <div class="lang-row">
+    <label for="langSelect">Speak in:</label>
+    <select id="langSelect">
+      <option value="en-US">English</option>
+      <option value="hi-IN">हिन्दी (Hindi)</option>
+      <option value="es-ES">Español</option>
+      <option value="fr-FR">Français</option>
+      <option value="de-DE">Deutsch</option>
+      <option value="pt-BR">Português</option>
+      <option value="ru-RU">Русский</option>
+      <option value="zh-CN">中文</option>
+      <option value="ja-JP">日本語</option>
+      <option value="ar-SA">العربية</option>
+      <option value="bn-IN">বাংলা (Bengali)</option>
+      <option value="ta-IN">தமிழ் (Tamil)</option>
+      <option value="mr-IN">मराठी (Marathi)</option>
+      <option value="gu-IN">ગુજરાતી (Gujarati)</option>
+    </select>
+  </div>
+
   <div class="settings-panel" id="settingsPanel">
     <label for="apiKeyInput">Groq API Key — smart parsing + suggestions</label>
     <div class="key-row">
@@ -609,6 +660,7 @@
   const manualInput = document.getElementById('manualInput');
   const manualAddBtn = document.getElementById('manualAddBtn');
   const micRing = document.getElementById('micRing');
+  const langSelect = document.getElementById('langSelect');
   const settingsBtn = document.getElementById('settingsBtn');
   const settingsPanel = document.getElementById('settingsPanel');
   const apiKeyInput = document.getElementById('apiKeyInput');
@@ -635,6 +687,15 @@
       ? '✓ Key saved — smart parsing enabled'
       : '';
   }
+
+  // ---------- Language selection ----------
+  let voiceLang = localStorage.getItem('voice_lang') || 'en-US';
+  langSelect.value = voiceLang;
+  langSelect.addEventListener('change', () => {
+    voiceLang = langSelect.value;
+    localStorage.setItem('voice_lang', voiceLang);
+    if (recognition) recognition.lang = voiceLang;
+  });
 
   // ---------- Rendering ----------
   function render() {
@@ -765,9 +826,9 @@
     const messages = [
       {
         role: 'system',
-        content: 'You convert a shopping voice command into JSON only. ' +
+        content: 'You convert a shopping voice command into JSON only. The command may be spoken in any language. ' +
           'Return {"action":"add"|"remove","item":"<name>","quantity":<int>,"category":"<one of: dairy, produce, snacks, bakery, beverages, meat, household, other>"}. ' +
-          'Normalize the item name to singular lowercase. Quantity defaults to 1 if not stated. No extra text, JSON only.'
+          'Always translate and normalize the item name to English, singular, lowercase, regardless of the input language. Quantity defaults to 1 if not stated. No extra text, JSON only.'
       },
       { role: 'user', content: text }
     ];
@@ -892,7 +953,7 @@
     recognition = new SpeechRecognition();
     recognition.continuous = false;
     recognition.interimResults = true;
-    recognition.lang = 'en-US';
+    recognition.lang = voiceLang;
 
     recognition.onstart = () => {
       listening = true;
@@ -942,6 +1003,7 @@
       if (listening) {
         recognition.stop();
       } else {
+        recognition.lang = voiceLang;
         try {
           recognition.start();
         } catch (e) {
