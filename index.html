@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shopping Assistant</title>
+<style>
+  :root {
+    --pink: #4aa8ff;
+    --pink-light: #dceeff;
+    --pink-soft: #f0f8ff;
+    --white: #ffffff;
+    --text: #1f2d3d;
+    --text-muted: #8a9bab;
+    --shadow: 0 8px 24px rgba(74, 168, 255, 0.15);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: linear-gradient(180deg, var(--pink-soft) 0%, var(--white) 40%);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    padding: 24px 16px;
+  }
+
+  .app {
+    width: 100%;
+    max-width: 420px;
+  }
+
+  h1 {
+    font-size: 22px;
+    color: var(--text);
+    text-align: center;
+    margin-bottom: 4px;
+  }
+
+  .subtitle {
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 13px;
+    margin-bottom: 28px;
+  }
+
+  /* Mic button */
+  .mic-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 24px;
+  }
+
+  .mic-btn {
+    width: 84px;
+    height: 84px;
+    border-radius: 50%;
+    border: none;
+    background: var(--pink);
+    color: white;
+    font-size: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: var(--shadow);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .mic-btn:active {
+    transform: scale(0.94);
+  }
+
+  .mic-btn.listening {
+    animation: pulse 1.2s infinite;
+    background: #ff2d6a;
+  }
+
+  @keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(255, 45, 106, 0.45); }
+    70% { box-shadow: 0 0 0 18px rgba(255, 45, 106, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(255, 45, 106, 0); }
+  }
+
+  .mic-status {
+    margin-top: 10px;
+    font-size: 13px;
+    color: var(--text-muted);
+    min-height: 18px;
+  }
+
+  .transcript-box {
+    background: var(--white);
+    border: 1.5px solid var(--pink-light);
+    border-radius: 16px;
+    padding: 14px 16px;
+    min-height: 48px;
+    font-size: 15px;
+    color: var(--text);
+    margin-bottom: 24px;
+    box-shadow: 0 4px 14px rgba(255, 92, 138, 0.08);
+    transition: border-color 0.2s ease;
+  }
+
+  .transcript-box.active {
+    border-color: var(--pink);
+  }
+
+  .transcript-box .placeholder {
+    color: var(--text-muted);
+    font-style: italic;
+  }
+
+  /* Manual add row (fallback / day-1 testing) */
+  .manual-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+
+  .manual-row input {
+    flex: 1;
+    padding: 10px 14px;
+    border-radius: 12px;
+    border: 1.5px solid var(--pink-light);
+    font-size: 14px;
+    outline: none;
+  }
+
+  .manual-row input:focus {
+    border-color: var(--pink);
+  }
+
+  .manual-row button {
+    background: var(--pink);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 0 18px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  /* List */
+  .list-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 10px;
+  }
+
+  .list-header h2 {
+    font-size: 15px;
+    color: var(--text);
+  }
+
+  .list-header span {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  .list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .item {
+    background: var(--white);
+    border-radius: 14px;
+    padding: 12px 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 10px rgba(255, 92, 138, 0.08);
+    animation: slideIn 0.25s ease;
+  }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(-6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .item.removing {
+    animation: slideOut 0.2s ease forwards;
+  }
+
+  @keyframes slideOut {
+    to { opacity: 0; transform: translateX(20px); height: 0; padding: 0; margin: 0; }
+  }
+
+  .item-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .item-name {
+    font-size: 14px;
+    color: var(--text);
+    font-weight: 500;
+  }
+
+  .item-qty {
+    font-size: 12px;
+    color: var(--pink);
+    background: var(--pink-light);
+    padding: 2px 8px;
+    border-radius: 999px;
+  }
+
+  .item-remove {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 18px;
+    cursor: pointer;
+    padding: 4px 8px;
+    line-height: 1;
+  }
+
+  .item-remove:hover {
+    color: var(--pink);
+  }
+
+  .empty-state {
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 13px;
+    padding: 30px 0;
+  }
+
+  .error-banner {
+    background: #fff0e8;
+    color: #b5482c;
+    border-radius: 12px;
+    padding: 10px 14px;
+    font-size: 13px;
+    margin-bottom: 16px;
+    display: none;
+  }
+
+  .error-banner.show {
+    display: block;
+  }
+
+  /* Header row + settings */
+  .header-row {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    margin-bottom: 4px;
+  }
+
+  .settings-btn {
+    position: absolute;
+    right: 0;
+    top: 0;
+    background: var(--white);
+    border: 1.5px solid var(--pink-light);
+    border-radius: 10px;
+    width: 34px;
+    height: 34px;
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .settings-panel {
+    display: none;
+    background: var(--white);
+    border: 1.5px solid var(--pink-light);
+    border-radius: 14px;
+    padding: 14px;
+    margin-bottom: 20px;
+    font-size: 13px;
+  }
+
+  .settings-panel.open {
+    display: block;
+  }
+
+  .settings-panel label {
+    display: block;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+  }
+
+  .settings-panel .key-row {
+    display: flex;
+    gap: 8px;
+  }
+
+  .settings-panel input {
+    flex: 1;
+    padding: 8px 10px;
+    border-radius: 10px;
+    border: 1.5px solid var(--pink-light);
+    font-size: 13px;
+    outline: none;
+  }
+
+  .settings-panel button {
+    background: var(--pink);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 0 14px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .settings-hint {
+    margin-top: 8px;
+    color: var(--text-muted);
+    font-size: 11.5px;
+    line-height: 1.5;
+  }
+
+  .settings-hint a {
+    color: var(--pink);
+  }
+
+  .key-status {
+    margin-top: 6px;
+    font-size: 11.5px;
+    color: #2e9e5b;
+  }
+
+  /* Category badge */
+  .item-category {
+    font-size: 11px;
+    color: var(--text-muted);
+    background: var(--pink-soft);
+    border: 1px solid var(--pink-light);
+    padding: 2px 8px;
+    border-radius: 999px;
+    text-transform: capitalize;
+  }
+
+  .item-main-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .item-sub-row {
+    margin-top: 4px;
+  }
+
+  /* Substitute suggestion chip */
+  .substitute-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--pink-soft);
+    border: 1px dashed var(--pink-light);
+    color: var(--text-muted);
+    font-size: 12px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    margin-top: 6px;
+  }
+
+  .substitute-chip button {
+    background: none;
+    border: none;
+    color: var(--pink);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 0;
+  }
+
+  .substitute-chip .dismiss {
+    color: var(--text-muted);
+    font-weight: 400;
+    margin-left: 2px;
+  }
+
+  /* Loading spinner (small, inline) */
+  .spinner {
+    width: 12px;
+    height: 12px;
+    border: 2px solid var(--pink-light);
+    border-top-color: var(--pink);
+    border-radius: 50%;
+    display: inline-block;
+    animation: spin 0.7s linear infinite;
+    margin-right: 6px;
+    vertical-align: middle;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="header-row">
+    <h1>🛒 Shopping Assistant</h1>
+    <button class="settings-btn" id="settingsBtn" aria-label="Settings">⚙️</button>
+  </div>
+  <p class="subtitle">Tap the mic and say something like "add 2 bottles of milk"</p>
+
+  <div class="settings-panel" id="settingsPanel">
+    <label for="apiKeyInput">Groq API key (free, used for smart parsing + suggestions)</label>
+    <div class="key-row">
+      <input type="password" id="apiKeyInput" placeholder="gsk_...">
+      <button id="saveKeyBtn">Save</button>
+    </div>
+    <div class="settings-hint">
+      Get a free key at <a href="https://console.groq.com/keys" target="_blank" rel="noopener">console.groq.com/keys</a>.
+      Stored only in your browser. Without a key, the app still works using basic offline parsing.
+    </div>
+    <div class="key-status" id="keyStatus"></div>
+  </div>
+
+  <div class="error-banner" id="errorBanner"></div>
+
+  <div class="mic-wrap">
+    <button class="mic-btn" id="micBtn" aria-label="Start listening">🎤</button>
+    <div class="mic-status" id="micStatus">Tap to speak</div>
+  </div>
+
+  <div class="transcript-box" id="transcriptBox">
+    <span class="placeholder">Your voice command will appear here...</span>
+  </div>
+
+  <!-- Manual entry: useful for testing today, also acts as a fallback input -->
+  <div class="manual-row">
+    <input type="text" id="manualInput" placeholder="Or type an item...">
+    <button id="manualAddBtn">Add</button>
+  </div>
+
+  <div class="list-header">
+    <h2>Your List</h2>
+    <span id="itemCount">0 items</span>
+  </div>
+
+  <div class="list" id="list"></div>
+  <div class="empty-state" id="emptyState">No items yet — add one above 👆</div>
+</div>
+
+<script>
+  // ---------- State ----------
+  let items = []; // {id, name, qty, category, substitute}
+  let idCounter = 1;
+
+  const listEl = document.getElementById('list');
+  const emptyState = document.getElementById('emptyState');
+  const itemCount = document.getElementById('itemCount');
+  const transcriptBox = document.getElementById('transcriptBox');
+  const micBtn = document.getElementById('micBtn');
+  const micStatus = document.getElementById('micStatus');
+  const errorBanner = document.getElementById('errorBanner');
+  const manualInput = document.getElementById('manualInput');
+  const manualAddBtn = document.getElementById('manualAddBtn');
+  const settingsBtn = document.getElementById('settingsBtn');
+  const settingsPanel = document.getElementById('settingsPanel');
+  const apiKeyInput = document.getElementById('apiKeyInput');
+  const saveKeyBtn = document.getElementById('saveKeyBtn');
+  const keyStatus = document.getElementById('keyStatus');
+
+  // ---------- Settings / API key ----------
+  let groqApiKey = localStorage.getItem('groq_api_key') || '';
+  if (groqApiKey) apiKeyInput.value = groqApiKey;
+  updateKeyStatus();
+
+  settingsBtn.addEventListener('click', () => {
+    settingsPanel.classList.toggle('open');
+  });
+
+  saveKeyBtn.addEventListener('click', () => {
+    groqApiKey = apiKeyInput.value.trim();
+    localStorage.setItem('groq_api_key', groqApiKey);
+    updateKeyStatus();
+  });
+
+  function updateKeyStatus() {
+    keyStatus.textContent = groqApiKey
+      ? '✓ Key saved — smart parsing enabled'
+      : '';
+  }
+
+  // ---------- Rendering ----------
+  function render() {
+    listEl.innerHTML = '';
+    itemCount.textContent = `${items.length} item${items.length === 1 ? '' : 's'}`;
+    emptyState.style.display = items.length === 0 ? 'block' : 'none';
+
+    items.forEach(item => {
+      const el = document.createElement('div');
+      el.className = 'item';
+      el.innerHTML = `
+        <div class="item-main-row">
+          <div class="item-left">
+            <span class="item-name">${escapeHtml(item.name)}</span>
+            ${item.qty > 1 ? `<span class="item-qty">x${item.qty}</span>` : ''}
+            ${item.category ? `<span class="item-category">${escapeHtml(item.category)}</span>` : ''}
+          </div>
+          <button class="item-remove" data-id="${item.id}">✕</button>
+        </div>
+        ${item.substitute ? `
+        <div class="item-sub-row">
+          <span class="substitute-chip">
+            Out of stock? Try <strong>${escapeHtml(item.substitute)}</strong>
+            <button class="use-sub" data-id="${item.id}">Swap</button>
+            <span class="dismiss" data-id="${item.id}" role="button">✕</span>
+          </span>
+        </div>` : ''}
+      `;
+      listEl.appendChild(el);
+    });
+
+    document.querySelectorAll('.item-remove').forEach(btn => {
+      btn.addEventListener('click', () => removeItem(Number(btn.dataset.id)));
+    });
+    document.querySelectorAll('.use-sub').forEach(btn => {
+      btn.addEventListener('click', () => swapSubstitute(Number(btn.dataset.id)));
+    });
+    document.querySelectorAll('.dismiss').forEach(el => {
+      el.addEventListener('click', () => dismissSubstitute(Number(el.dataset.id)));
+    });
+  }
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  // ---------- Item actions ----------
+  function addItem(name, qty = 1, category = null) {
+    if (!name || !name.trim()) return;
+    const item = { id: idCounter++, name: name.trim(), qty, category, substitute: null };
+    items.push(item);
+    render();
+    // Fire-and-forget: ask Groq for a substitute suggestion (only if key set)
+    if (groqApiKey) fetchSubstitute(item.id, item.name);
+    return item;
+  }
+
+  function removeItem(id) {
+    const el = listEl.querySelector(`[data-id="${id}"]`)?.closest('.item');
+    if (el) el.classList.add('removing');
+    setTimeout(() => {
+      items = items.filter(i => i.id !== id);
+      render();
+    }, 180);
+  }
+
+  function dismissSubstitute(id) {
+    const item = items.find(i => i.id === id);
+    if (item) { item.substitute = null; render(); }
+  }
+
+  function swapSubstitute(id) {
+    const item = items.find(i => i.id === id);
+    if (item && item.substitute) {
+      item.name = item.substitute;
+      item.substitute = null;
+      render();
+    }
+  }
+
+  manualAddBtn.addEventListener('click', () => {
+    const text = manualInput.value;
+    manualInput.value = '';
+    if (groqApiKey) {
+      handleVoiceCommand(text);
+    } else {
+      addItem(text);
+    }
+  });
+  manualInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') manualAddBtn.click();
+  });
+
+  // ---------- Simple rule-based voice command parser (Day 1) ----------
+  const numberWords = {
+    one: 1, two: 2, three: 3, four: 4, five: 5,
+    six: 6, seven: 7, eight: 8, nine: 9, ten: 10
+  };
+
+  // ---------- Groq-powered parsing (Day 2) ----------
+  const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
+  const GROQ_MODEL = 'openai/gpt-oss-20b';
+
+  async function callGroq(messages, jsonMode = true) {
+    const res = await fetch(GROQ_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${groqApiKey}`
+      },
+      body: JSON.stringify({
+        model: GROQ_MODEL,
+        messages,
+        temperature: 0.2,
+        max_tokens: 200,
+        ...(jsonMode ? { response_format: { type: 'json_object' } } : {})
+      })
+    });
+    if (!res.ok) throw new Error(`Groq API error: ${res.status}`);
+    const data = await res.json();
+    return data.choices?.[0]?.message?.content || '';
+  }
+
+  async function parseWithGroq(text) {
+    const messages = [
+      {
+        role: 'system',
+        content: 'You convert a shopping voice command into JSON only. ' +
+          'Return {"action":"add"|"remove","item":"<name>","quantity":<int>,"category":"<one of: dairy, produce, snacks, bakery, beverages, meat, household, other>"}. ' +
+          'Normalize the item name to singular lowercase. Quantity defaults to 1 if not stated. No extra text, JSON only.'
+      },
+      { role: 'user', content: text }
+    ];
+    const raw = await callGroq(messages, true);
+    const parsed = JSON.parse(raw);
+    if (!parsed.item) throw new Error('No item in Groq response');
+    return {
+      action: parsed.action === 'remove' ? 'remove' : 'add',
+      name: String(parsed.item).trim(),
+      qty: Number(parsed.quantity) > 0 ? Number(parsed.quantity) : 1,
+      category: parsed.category || 'other'
+    };
+  }
+
+  async function fetchSubstitute(itemId, itemName) {
+    try {
+      const messages = [
+        {
+          role: 'system',
+          content: 'Suggest ONE common grocery substitute for the given item, in case it is out of stock. ' +
+            'Return JSON only: {"substitute":"<name>"}. Keep it a plausible, commonly available alternative. Lowercase.'
+        },
+        { role: 'user', content: itemName }
+      ];
+      const raw = await callGroq(messages, true);
+      const parsed = JSON.parse(raw);
+      const item = items.find(i => i.id === itemId);
+      if (item && parsed.substitute && parsed.substitute.toLowerCase() !== itemName.toLowerCase()) {
+        item.substitute = parsed.substitute;
+        render();
+      }
+    } catch (e) {
+      // Silent fail — substitute suggestions are a nice-to-have, not critical
+      console.warn('Substitute suggestion failed:', e);
+    }
+  }
+
+  // ---------- Rule-based fallback parser (used if no API key / Groq fails) ----------
+  function handleVoiceCommandLocal(text) {
+    if (!text) return;
+    const lower = text.toLowerCase().replace(/[.?!]/g, '').trim();
+
+    // Remove/delete commands
+    const removeMatch = lower.match(/^(?:remove|delete)\s+(.+?)(?:\s+from\s+my\s+list)?$/);
+    if (removeMatch) {
+      const name = removeMatch[1].trim();
+      const found = items.find(i => i.name.toLowerCase().includes(name) || name.includes(i.name.toLowerCase()));
+      if (found) removeItem(found.id);
+      return;
+    }
+
+    // Strip common lead-in phrases: "add", "i need", "i want to buy", "buy", "get me"
+    let stripped = lower
+      .replace(/^(?:please\s+)?(?:add|i need|i want to buy|i want|buy|get me|get)\s+/, '')
+      .trim();
+
+    if (!stripped) stripped = lower; // fallback: use whole utterance as item
+
+    // Pull out a leading quantity (digit or number word)
+    let qty = 1;
+    const qtyMatch = stripped.match(/^(\d+|one|two|three|four|five|six|seven|eight|nine|ten)\s+/);
+    if (qtyMatch) {
+      const raw = qtyMatch[1];
+      qty = numberWords[raw] || parseInt(raw, 10) || 1;
+      stripped = stripped.slice(qtyMatch[0].length);
+    }
+
+    // Strip filler like "bottles of", "of" so "2 bottles of milk" -> "milk"
+    stripped = stripped
+      .replace(/^(?:bottles?|cans?|packs?|boxes?|bags?|units?)\s+of\s+/, '')
+      .replace(/^of\s+/, '')
+      .replace(/\s+to\s+my\s+list$/, '')
+      .trim();
+
+    if (stripped) addItem(stripped, qty);
+  }
+
+  // ---------- Main dispatcher: try Groq, fall back to local rules ----------
+  async function handleVoiceCommand(text) {
+    if (!text || !text.trim()) return;
+
+    if (!groqApiKey) {
+      handleVoiceCommandLocal(text);
+      return;
+    }
+
+    setThinking(true);
+    try {
+      const result = await parseWithGroq(text);
+      if (result.action === 'remove') {
+        const found = items.find(i =>
+          i.name.toLowerCase().includes(result.name) || result.name.includes(i.name.toLowerCase())
+        );
+        if (found) removeItem(found.id);
+      } else {
+        addItem(result.name, result.qty, result.category);
+      }
+    } catch (e) {
+      console.warn('Groq parse failed, falling back to local parser:', e);
+      handleVoiceCommandLocal(text);
+    } finally {
+      setThinking(false);
+    }
+  }
+
+  function setThinking(isThinking) {
+    if (isThinking) {
+      micStatus.innerHTML = '<span class="spinner"></span>Thinking...';
+    } else if (!listening) {
+      micStatus.textContent = 'Tap to speak';
+    }
+  }
+
+  // ---------- Web Speech API ----------
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  let recognition = null;
+  let listening = false;
+
+  if (!SpeechRecognition) {
+    showError('Voice recognition isn\'t supported in this browser. Try Chrome on desktop or Android.');
+  } else {
+    recognition = new SpeechRecognition();
+    recognition.continuous = false;
+    recognition.interimResults = true;
+    recognition.lang = 'en-US';
+
+    recognition.onstart = () => {
+      listening = true;
+      micBtn.classList.add('listening');
+      micStatus.textContent = 'Listening...';
+      transcriptBox.classList.add('active');
+      hideError();
+    };
+
+    recognition.onresult = (event) => {
+      let transcript = '';
+      for (let i = 0; i < event.results.length; i++) {
+        transcript += event.results[i][0].transcript;
+      }
+      transcriptBox.innerHTML = transcript
+        ? escapeHtml(transcript)
+        : '<span class="placeholder">Your voice command will appear here...</span>';
+
+      // Day 1 quick parser: simple rule-based command handling so voice
+      // actually adds/removes items today. Day 2 will swap this for a
+      // Groq call that returns {action, item, qty, category} more robustly.
+      if (event.results[event.results.length - 1].isFinal) {
+        handleVoiceCommand(transcript.trim());
+      }
+    };
+
+    recognition.onerror = (event) => {
+      if (event.error === 'not-allowed') {
+        showError('Microphone access was denied. Please allow mic permissions and try again.');
+      } else if (event.error === 'no-speech') {
+        showError('Didn\'t catch that — try speaking again.');
+      } else {
+        showError(`Voice recognition error: ${event.error}`);
+      }
+    };
+
+    recognition.onend = () => {
+      listening = false;
+      micBtn.classList.remove('listening');
+      micStatus.textContent = 'Tap to speak';
+      transcriptBox.classList.remove('active');
+    };
+
+    micBtn.addEventListener('click', () => {
+      if (listening) {
+        recognition.stop();
+      } else {
+        try {
+          recognition.start();
+        } catch (e) {
+          showError('Could not start microphone. Try again.');
+        }
+      }
+    });
+  }
+
+  function showError(msg) {
+    errorBanner.textContent = msg;
+    errorBanner.classList.add('show');
+  }
+  function hideError() {
+    errorBanner.classList.remove('show');
+  }
+
+  // ---------- Init ----------
+  render();
+</script>
+
+</body>
+</html>
